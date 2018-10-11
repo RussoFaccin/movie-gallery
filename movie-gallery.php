@@ -72,7 +72,40 @@ add_action( 'save_post', 'on_save_post');
 
 function on_save_post($postid) {
   $thumbPath = $_POST['fld_thumb'];
-  update_post_meta($postid, 'movie_thumb', $thumbPath);
+
+  if (!empty($thumbPath)) {
+    update_post_meta($postid, 'movie_thumb', $thumbPath);
+  }
+}
+
+/*
+| ###########################################################################
+|   CUSTOM TABLE HEADERS
+| ###########################################################################
+*/
+
+add_filter('manage_movie_gallery_posts_columns', 'bs_event_table_head');
+function bs_event_table_head($defaults) {
+  unset($defaults['title']);
+  unset($defaults['date']);
+  $defaults['thumb']  = 'Thumbnail';
+  $defaults['title']  = 'Title';
+  $defaults['date']  = 'Date';
+  $defaults['author']  = 'Author';
+  return $defaults;
+}
+
+//
+
+add_action( 'manage_movie_gallery_posts_custom_column', 'bs_event_table_content', 10, 2 );
+
+function bs_event_table_content( $column_name, $post_id ) {
+  if ($column_name == 'thumb') {
+    $value = get_post_custom_values('movie_thumb', $post->ID);
+  $thumb = empty($value[0]) ? plugins_url('', __FILE__).'/img/add-new-image.png"' : $value[0];
+    $html = '<img class="a-adminPanel__thumb" src="'.$thumb.'" alt="">';
+    echo $html;
+  }
 }
 
 /*
@@ -96,7 +129,6 @@ function slug_register_movieThumb() {
 
 function slug_get_movie( $object, $field_name, $request ) {
   return get_post_custom_values('movie_thumb', $object['id'])[0];
-  // return get_post_meta( $object['id'], $field_name, true );
 }
 
 /*
